@@ -1,0 +1,16 @@
+# Directories
+**/bin/
+**/build/
+**/.gradle/
+**/.nb-gradle/
+**/.idea/
+**/.settings/
+**/generated/
+
+# Files
+.classpath
+.project
+.DS_Store
+*.iml
+*.ipr
+*.iws
