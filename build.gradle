@@ -1,7 +1,24 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.0'
+    }
+}
+
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'maven'
+apply plugin: 'com.google.protobuf'
+
+sourceSets.main.java.srcDirs      = ['src/main/java', 'src/main/grpc']
+sourceSets.main.resources.srcDirs = ['src/main/resources']
+sourceSets.test.java.srcDirs      = ['src/test/java']
+sourceSets.test.resources.srcDirs = ['src/test/resources']
+sourceSets.main.proto.srcDirs     = [sourceSets.main.resources.srcDirs.last().getPath() + '/proto']
+sourceSets.test.proto.srcDirs     = [sourceSets.test.resources.srcDirs.last().getPath() + '/proto']
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -15,10 +32,27 @@ repositories {
 
 dependencies {
 
-    compile group: 'io.grpc', name: 'grpc-netty',    version: '1.16.1'
-    compile group: 'io.grpc', name: 'grpc-protobuf', version: '1.16.1'
-    compile group: 'io.grpc', name: 'grpc-stub',     version: '1.16.1'
+    compile group: 'io.grpc', name: 'grpc-netty',    version: '1.18.0'
+    compile group: 'io.grpc', name: 'grpc-protobuf', version: '1.18.0'
+    compile group: 'io.grpc', name: 'grpc-stub',     version: '1.18.0'
 
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.6.1"
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.18.0'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
+    generatedFilesBaseDir = "$projectDir/src"
 }
 
 task sourcesJar(type: Jar, dependsOn: ['classes']) {
@@ -31,23 +65,21 @@ task javadocJar(type: Jar, dependsOn: ['javadoc']) {
     from javadoc.destinationDir
 }
 
-task protoc(type:Exec, dependsOn: ['cleanProtoc']) {
-    doFirst {
-        file(sourceSets.main.java.getSrcDirs().last().getAbsolutePath() + '/generated').mkdir()
-    }
-    commandLine 'protoc'
-    args '-I=' + sourceSets.main.resources.getSrcDirs().last().getAbsolutePath()
-    args '--java_out=' + sourceSets.main.java.getSrcDirs().last().getAbsolutePath()
-    sourceSets.main.resources.srcDirs().getFiles().each { f ->
-        if (f.getName().endsWith(".proto")) {
-            args f.getAbsolutePath()
-        }
-    }
-}
-
-task cleanProtoc() {
+task cleanGenerateProto() {
     doLast {
-        delete sourceSets.main.java.getSrcDirs().last().getAbsolutePath() + '/generated'
+        tasks['generateProto'].outputs.getFiles().each { directory ->
+            directory.listFiles().each { subDirectory ->
+                if ('grpc'.equals(subDirectory.getName())) {
+                    delete subDirectory
+                } else if ('java'.equals(subDirectory.getName())) {
+                    subDirectory.listFiles().each { d ->
+                        if ('generated'.equals(d.getName())) {
+                            delete d
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -104,3 +136,5 @@ tasks['cleanIdea'].doLast {
 }
 
 tasks['cleanIdea'].dependsOn 'cleanIdeaWorkspace'
+tasks['cleanEclipse'].dependsOn 'cleanGenerateProto'
+tasks['eclipseClasspath'].dependsOn 'generateProto'
