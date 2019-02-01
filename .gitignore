@@ -8,9 +8,9 @@
 **/generated/
 
 # Files
-.classpath
-.project
-.DS_Store
-*.iml
-*.ipr
-*.iws
+**/.classpath
+**/.project
+**/.DS_Store
+**/*.iml
+**/*.ipr
+**/*.iws

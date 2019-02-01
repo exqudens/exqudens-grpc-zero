@@ -13,7 +13,7 @@ apply plugin: 'idea'
 apply plugin: 'maven'
 apply plugin: 'com.google.protobuf'
 
-sourceSets.main.java.srcDirs      = ['src/main/java', 'src/main/grpc']
+sourceSets.main.java.srcDirs      = ['src/main/java', 'src/main/generated']
 sourceSets.main.resources.srcDirs = ['src/main/resources']
 sourceSets.test.java.srcDirs      = ['src/test/java']
 sourceSets.test.resources.srcDirs = ['src/test/resources']
@@ -48,8 +48,17 @@ protobuf {
         }
     }
     generateProtoTasks {
-        all()*.plugins {
-            grpc {}
+        all().each { task ->
+            task.builtins {
+                java {
+                    outputSubDir = 'generated'
+                }
+            }
+            task.plugins {
+                grpc {
+                    outputSubDir = 'generated'
+                }
+            }
         }
     }
     generatedFilesBaseDir = "$projectDir/src"
@@ -67,19 +76,7 @@ task javadocJar(type: Jar, dependsOn: ['javadoc']) {
 
 task cleanGenerateProto() {
     doLast {
-        tasks['generateProto'].outputs.getFiles().each { directory ->
-            directory.listFiles().each { subDirectory ->
-                if ('grpc'.equals(subDirectory.getName())) {
-                    delete subDirectory
-                } else if ('java'.equals(subDirectory.getName())) {
-                    subDirectory.listFiles().each { d ->
-                        if ('generated'.equals(d.getName())) {
-                            delete d
-                        }
-                    }
-                }
-            }
-        }
+        delete 'src/main/generated'
     }
 }
 
