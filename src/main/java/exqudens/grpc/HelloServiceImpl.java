@@ -2,10 +2,10 @@ package exqudens.grpc;
 
 import generated.exqudens.grpc.HelloRequest;
 import generated.exqudens.grpc.HelloResponse;
-import generated.exqudens.grpc.HelloServiceGrpc.HelloServiceImplBase;
+import generated.exqudens.grpc.HelloServiceGrpc;
 import io.grpc.stub.StreamObserver;
 
-public class HelloServiceImpl extends HelloServiceImplBase {
+public class HelloServiceImpl extends HelloServiceGrpc.HelloServiceImplBase {
 
     @Override
     public void hello(HelloRequest request, StreamObserver<HelloResponse> responseObserver) {

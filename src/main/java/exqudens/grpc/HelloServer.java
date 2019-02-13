@@ -3,7 +3,7 @@ package exqudens.grpc;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
-public class GrpcServer {
+public class HelloServer {
 
     public static void main(String... args) {
         try {
